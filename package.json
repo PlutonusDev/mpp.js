@@ -19,6 +19,7 @@
   "homepage": "https://github.com/PlutonusDev/BetterMPP#readme",
   "dependencies": {
     "https-proxy-agent": "^2.2.2",
-    "setimmediate": "^1.0.5"
+    "setimmediate": "^1.0.5",
+    "ws": "^7.1.2"
   }
 }
