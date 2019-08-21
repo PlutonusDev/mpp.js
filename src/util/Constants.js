@@ -5,9 +5,13 @@ const { Error, rangeError } = require("../errors");
  * Options for a client.
  * @typedef {Object} ClientOptions
  * @property {string} [proxy=""] Proxy used for connecting (IP/Hostname:Port)
+ * @property {string} [username="[ PlutoBot ]"] Username to set on `READY` event.
+ * @property {string} [room="lobby"] Room to join on `READY` event.
  */
 exports.DefaultOptions = {
-	proxy: ""
+	proxy: "",
+	username: "[ PlutoBot ]",
+	room: "lulwut"
 }
 
 /**
@@ -37,11 +41,13 @@ exports.OPCodes = {
 
 exports.Events = {
 	CLIENT_READY: "ready",
-	USER_ADD: "userJoin",
+	USER_JOIN: "userJoin",
 	USER_LEAVE: "userLeave",
 	USER_UPDATE: "userUpdate",
 	MESSAGE: "message",
-	NOTE_PLAY: "note"
+	NOTE_PLAY: "note",
+
+	DEBUG: "debug"
 }
 
 /**

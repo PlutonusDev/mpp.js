@@ -12,4 +12,4 @@ const Messages = {
 	UDP_CONNECTION_EXISTS: "There is already an existing UDP connection."
 }
 
-for (const [name, message] of Object.defineProperties(Messages)) register(name, message);
+for (const [name, message] of Object.entries(Messages)) register(name, message);

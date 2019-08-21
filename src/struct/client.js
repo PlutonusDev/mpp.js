@@ -1,5 +1,7 @@
 const BaseClient = require("./baseclient");
 const WebSocketManager = require("./websocket/websocketmanager");
+const { Error, TypeError, RangeError } = require("../errors");
+const { Events, DefaultOptions } = require("../util/Constants")
 
 /**
  * The main hub for interacting with MultiplayerPiano, and the starting point for any bot.
@@ -9,16 +11,22 @@ class Client extends BaseClient {
 	/**
 	 * @param {ClientOptions} [options] Options for the client.
 	 */
-	constructor(options={}) {
+	constructor(options=DefaultOptions) {
 		super();
 		
 		this._validateOptions();
 
 		/**
+		 * The options for the client.
+		 * @type {object}
+		 */
+		this.options = options;
+
+		/**
 		 * The WebSocket manager of the client.
 		 * @type {WebSocketManager}
 		 */
-		this.ws = new WebSocketManager(this);
+		this.socket = new WebSocketManager(this);
 
 		/**
 		 * User that the client is displayed as.
@@ -53,17 +61,17 @@ class Client extends BaseClient {
 
 	/**
 	 * Connects the client, establishing a websocket connection to MultiplayerPiano
-	 * @returns {Promise<string>} The client's _id.
+	 * @returns {Promise<string>} The client's _id. (TODO)
 	 */
 	async connect() {
-		this.emit(Events.DEBUG, "Preparing to connect...");
+		this.emit(Events.DEBUG, "[CLIENT] Preparing to connect...");
 
 		try {
-			await this.ws.connect();
-			return "um";
+			await this.socket.connect(this.options.proxy);
+			return true;
 		} catch(err) {
-			this.destroy();
-			throw err;
+			//this.destroy();
+			console.error(err);
 		}
 	}
 
@@ -73,7 +81,14 @@ class Client extends BaseClient {
 	 */
 	destroy() {
 		super.destroy();
-		this.ws.destroy();
+		this.socket.destroy();
+	}
+
+	/**
+	 * Get the gateway url. Why not?
+	 */
+	getGateway() {
+		return {url:"ws://www.multiplayerpiano.com"}
 	}
 
 	/**
@@ -94,6 +109,30 @@ class Client extends BaseClient {
 	 */
 	_validateOptions(options = this.options) {
 		// No validation needed yet.
+	}
+
+	/**
+	 * Sets the client's username.
+	 * @param {string} username The client's username.
+	 */
+	setUsername(username) {
+		return this.socket.sendArray([{m: "userset", set: {"name": username}}]);
+	}
+
+	/**
+	 * Sends a message into the current room.
+	 * @param {string} message The message.
+	 */
+	sendMessage(message) {
+		return this.socket.sendArray([{m: "a", message: message}]);
+	}
+
+	/**
+	 * Sets the client's room.
+	 * @param {string} room The room's name.
+	 */
+	setRoom(room) {
+		return this.socket.sendArray([{m: "ch", _id: room, set: undefined}]);
 	}
 }
 
