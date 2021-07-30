@@ -5,5 +5,7 @@ export const OPCodes = {
 	CHANNEL: "ch",
 	USER: "userset",
 	NOTE: "n",
-	POINTER: "m"
+	POINTER: "m",
+	USER_JOIN: "p",
+	USER_LEAVE: "bye"
 }

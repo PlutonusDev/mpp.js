@@ -4,10 +4,12 @@ import { OPCodes } from "../util/Enums";
 
 export default class MPPClient extends EventEmitter {
 	ws: WebSocket | null;
+	users: Map<string, any>;
 
 	constructor() {
 		super();
 		this.ws = null;
+		this.users = new Map();
 		return this;
 	}
 
@@ -35,15 +37,59 @@ export default class MPPClient extends EventEmitter {
 			data.map((payload: any) => payload.m !== OPCodes.NOTE && payload.m !== OPCodes.POINTER);
 			if(data) {
 				this.emit("data", `Received: '${JSON.stringify(data)}'`);
-				for(let i = 0; i < (data.length); i++) {
+				for(let i = 0; i < data.length; i++) {
 					const payload: any = data[i];
-					if(payload.m === OPCodes.MESSAGE) this.emit("message", {
-						content: payload.a,
-						author: {
-							name: payload.p.name,
-							id: payload.p._id
+					if(payload.m === OPCodes.CHANNEL) {
+						for(let j = 0; j < payload.ppl.length; j++) {
+							this.users.set(payload.ppl[j]._id, {
+								name: payload.ppl[j].name,
+								type: payload.ppl[j].tag || "user"
+							});
 						}
-					});
+					}
+
+					if(payload.m === OPCodes.MESSAGE) {
+						let p = this.users.get(payload.p._id);
+
+						return this.emit("message", {
+							content: payload.a,
+							author: {
+								name: payload.p.name,
+								id: payload.p._id,
+								type: p.type
+							}
+						});
+					}
+
+					if(payload.m === OPCodes.USER_JOIN) {
+						let p = this.users.get(payload._id);
+						if(p) return this.emit("userUpdate", {
+							name: payload.name,
+							type: payload.tag || "user"
+						});
+
+						this.users.set(payload._id, {
+							name: payload.name,
+							type: payload.tag || "user"
+						});
+
+						return this.emit("userAdd", {
+							id: payload._id,
+							name: payload.name,
+							type: payload.tag || "user"
+						});
+					}
+
+					if(payload.m === OPCodes.USER_LEAVE) {
+						let p = this.users.get(payload.p);
+						this.users.delete(payload.p);
+
+						return this.emit("userRemove", {
+							id: payload.p,
+							name: p.name,
+							type: p.type
+						});
+					}
 				}
 			}
 		});
